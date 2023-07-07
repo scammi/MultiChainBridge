@@ -12,52 +12,75 @@ let sourceNFT, destinationNFT, GatewayLILO, GatewayMintBurn
 let sourceChainNft, destinationChainNft, gatewayLilo, gatewayMintBurn
 
 const deploySrcNft = async () => {
-    sourceChainNft = await sourceNFT.deploy("Source Chain NFT", "SRC_NFT")
+    sourceChainNft = await sourceNFT.deploy(
+        "Source Chain NFT", "SRC_NFT",
+        { gasPrice: ethers.utils.parseUnits(sourceChainConfig.gasPrice, "gwei")
+    })
+
     await sourceChainNft.deployed()
     console.log(`Source NFT deployed on ${ sourceChainConfig.name } at: ${ sourceChainNft.address }`)
 }
 
 const deployDestNft = async () => {
-    destinationChainNft = await destinationNFT.deploy("Destination Chain NFT", "DEST_NFT")
+    destinationChainNft = await destinationNFT.deploy(
+        "Destination Chain NFT", "DEST_NFT",
+        { gasLimit: 15000000, gasPrice: ethers.utils.parseUnits(destinationChainConfig.gasPrice, "gwei")
+    });
     await destinationChainNft.deployed()
     console.log(`Destination NFT deployed on ${ destinationChainConfig.name } at: ${ destinationChainNft.address }`)
 }
 
 const deploySrcGateway = async () => {
-    gatewayLilo = await GatewayLILO.deploy(sourceChainConfig.anyCallProxy, 2, sourceChainNft.address)
+    gatewayLilo = await GatewayLILO.deploy(
+        sourceChainConfig.anyCallProxy, 2, sourceChainNft.address,
+        { gasLimit: 15000000, gasPrice: ethers.utils.parseUnits(sourceChainConfig.gasPrice, "gwei")
+    })
     await gatewayLilo.deployed()
     console.log(`Source gateway deployed on ${ sourceChainConfig.name } at: ${ gatewayLilo.address }`)
 }
 
 const deployDestGateway = async () => {
-    gatewayMintBurn = await GatewayMintBurn.deploy(destinationChainConfig.anyCallProxy, 2, destinationChainNft.address)
+    gatewayMintBurn = await GatewayMintBurn.deploy(
+        destinationChainConfig.anyCallProxy, 2, destinationChainNft.address,
+        { gasLimit: 15000000, gasPrice: ethers.utils.parseUnits(destinationChainConfig.gasPrice, "gwei")
+    })
     await gatewayMintBurn.deployed()
     console.log(`Destination gateway deployed on ${ destinationChainConfig.name } at: ${ gatewayMintBurn.address }`)
 }
 
 const setSrcPeer = async () => {
-    const setSrcPeersTx = await gatewayLilo.setPeers([ destinationChainConfig.chainId ], [ gatewayMintBurn.address ], { gasLimit: 1000000 })
+    const setSrcPeersTx = await gatewayLilo.setPeers(
+        [ destinationChainConfig.chainId ], [ gatewayMintBurn?.address ],
+        { gasLimit: 15000000, gasPrice: ethers.utils.parseUnits(destinationChainConfig.gasPrice, "gwei")
+    })
+    console.log(setSrcPeersTx);
     await setSrcPeersTx.wait()
     console.log(`Set source chain peer to ${ gatewayMintBurn.address }`)
 }
 
 const setDestPeer = async () => {
-    const setDestPeersTx = await gatewayMintBurn.setPeers([ sourceChainConfig.chainId ], [ gatewayLilo.address ], { gasLimit: 1000000 })
+    const setDestPeersTx = await gatewayMintBurn.setPeers(
+        [ sourceChainConfig.chainId ], [ gatewayLilo.address ],
+        { gasLimit: 15000000, gasPrice: ethers.utils.parseUnits(sourceChainConfig.gasPrice, "gwei")
+    })
     await setDestPeersTx.wait()
     console.log(`Set destination chain peer to ${ gatewayLilo.address }`)
 }
 
 const setMinter = async () => {
-    const setMinterTx = await destinationChainNft.transferOwnership(gatewayMintBurn.address, { gasLimit: 1000000 })
+    const setMinterTx = await destinationChainNft.transferOwnership(
+        gatewayMintBurn.address,
+        { gasLimit: 15000000, gasPrice: ethers.utils.parseUnits(destinationChainConfig.gasPrice, "gwei")
+    })
     await setMinterTx.wait()
     console.log(`Set minter to ${ gatewayMintBurn.address } on destination chain ${ destinationChainConfig.name }`)
 }
 
 const getSigners = () => {
     const sourceProvider = new ethers.providers.JsonRpcProvider(sourceChainConfig.rpcUrl)
-    const sourceWallet = new ethers.Wallet(process.env.PK)
+    const sourceWallet = ethers.Wallet.fromMnemonic(process.env.TESTNET_MNEMONIC ?? '');
     const destinationProvider = new ethers.providers.JsonRpcProvider(destinationChainConfig.rpcUrl)
-    const destinationWallet = new ethers.Wallet(process.env.PK)
+    const destinationWallet = ethers.Wallet.fromMnemonic(process.env.TESTNET_MNEMONIC ?? '');
     sourceSigner = sourceWallet.connect(sourceProvider)
     destinationSigner = destinationWallet.connect(destinationProvider)
 }

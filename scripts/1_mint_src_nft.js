@@ -1,11 +1,8 @@
 const hre = require("hardhat")
 const { sourceChainConfig } = require("../config.js")
-const dotenv = require("dotenv")
 const fs = require("fs")
 
 const ethers = hre.ethers
-
-dotenv.config()
 
 const deployed = JSON.parse(fs.readFileSync("./deployed.json"))
 
@@ -13,7 +10,7 @@ let sourceSigner, sourceAddress, sourceNFT
 
 const getSigners = async () => {
     const sourceProvider = new ethers.providers.JsonRpcProvider(sourceChainConfig.rpcUrl)
-    const sourceWallet = new ethers.Wallet(process.env.PK)
+    const sourceWallet = ethers.Wallet.fromMnemonic(process.env.TESTNET_MNEMONIC ?? '');
     sourceSigner = sourceWallet.connect(sourceProvider)
     sourceAddress = await sourceSigner.getAddress()
 }

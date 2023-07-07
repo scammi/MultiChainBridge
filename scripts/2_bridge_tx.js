@@ -13,7 +13,7 @@ let sourceProvider, sourceSigner, sourceAddress
 
 const getSigners = async () => {
     sourceProvider = new ethers.providers.JsonRpcProvider(sourceChainConfig.rpcUrl)
-    const sourceWallet = new ethers.Wallet(process.env.PK)
+    const sourceWallet = ethers.Wallet.fromMnemonic(process.env.TESTNET_MNEMONIC ?? '');
     // const destinationProvider = new ethers.providers.JsonRpcProvider(destinationChainConfig.rpcUrl)
     // const destinationWallet = new ethers.Wallet(process.env.PK)
     sourceSigner = sourceWallet.connect(sourceProvider)

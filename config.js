@@ -1,16 +1,18 @@
 module.exports = {
     sourceChainConfig: {
-        name: "Fantom Testnet",
-        chainId: 4002,
-        rpcUrl: "https://rpc.testnet.fantom.network/",
-        // anyCallProxy: "0xd7c295e399ca928a3a14b01d760e794f1adf8990"
-        anyCallProxy: "0xc629d02732EE932db1fa83E1fcF93aE34aBFc96B"
+        name: "MATIC",
+        chainId: 137,
+        rpcUrl: "https://polygon-mainnet.g.alchemy.com/v2/HFlv2m48GYEDLf9sHMTBuy2Z80xFwlVC",
+        anyCallProxy: "0xC10Ef9F491C9B59f936957026020C321651ac078",
+        gasPrice: '150'
+        // anyCallProxy: "0xc629d02732EE932db1fa83E1fcF93aE34aBFc96B"
     },
     destinationChainConfig: {
-        name: "BSC Testnet",
-        chainId: 97,
-        rpcUrl: "https://data-seed-prebsc-1-s1.binance.org:8545/",
-        // anyCallProxy: "0x5fac4f1ac9f8a4233e4ca6a332e6a5d0266edc0b"
-        anyCallProxy: "0xD2b88BA56891d43fB7c108F23FE6f92FEbD32045"
+        name: "Avalanche (C-Chain)",
+        chainId: 43114,
+        rpcUrl: "https://api.avax.network/ext/bc/C/rpc",
+        anyCallProxy: "0xC10Ef9F491C9B59f936957026020C321651ac078",
+        gasPrice: '30'
+        // anyCallProxy: "0xD2b88BA56891d43fB7c108F23FE6f92FEbD32045"
     }
 }
