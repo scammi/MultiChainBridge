@@ -19,7 +19,15 @@ const mintSrcNft = async () => {
     await getSigners()
     sourceNFT = await ethers.getContractFactory("NFT", sourceSigner)
     const sourceChainNft = sourceNFT.attach(deployed.sourceChain.nft)
-    const mintSourceNft = await sourceChainNft.mint(sourceAddress, "abc", { gasLimit: 1000000 })
+    const mintSourceNft = await sourceChainNft.mint(
+        sourceAddress, "abc",
+        {
+            gasLimit: 15000000,
+            gasPrice: ethers.utils.parseUnits(sourceChainConfig.gasPrice, "gwei"),
+            nonce: 31,
+        }
+    )
+    console.log(mintSourceNft)
     const receipt = await mintSourceNft.wait()
     console.log(receipt)
 }
