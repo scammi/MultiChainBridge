@@ -21,14 +21,46 @@ const getSigners = async () => {
     sourceAddress = await sourceSigner.getAddress()
 }
 
+const allowContractToUseNftTx = async () => {
+    await getSigners()
+    const sourceNFT = (await ethers.getContractFactory("NFT", sourceSigner)).attach(deployed.sourceChain.nft)
+
+    const approveTx = await sourceNFT.approve(
+        deployed.sourceChain.gateway,
+        1, 
+        {
+            gasLimit: 15000000,
+            gasPrice: ethers.utils.parseUnits(sourceChainConfig.gasPrice, "gwei"),
+            nonce: 49,
+        }
+    )
+
+    console.log(approveTx)
+
+    await approveTx.wait()
+    
+}
+
 const bridgeTx = async () => {
     await getSigners()
     const GatewayLILO = await ethers.getContractFactory("ERC721Gateway_LILO", sourceSigner)
     const gatewayLilo = GatewayLILO.attach(deployed.sourceChain.gateway)
-    const anyCallTx = await gatewayLilo.callStatic.Swapout_no_fallback(ethers.BigNumber.from("0"), sourceAddress, ethers.BigNumber.from("97"), { value: ethers.BigNumber.from("3"), gasLimit: 1000000 })
-    // await anyCallTx.wait()
+    const anyCallTx = await gatewayLilo.Swapout_no_fallback(
+        ethers.BigNumber.from("1"),
+        sourceAddress,
+        ethers.BigNumber.from("43114"),
+        {
+            value: ethers.BigNumber.from("2256000000000000000"),
+            gasLimit: 15000000,
+            gasPrice: ethers.utils.parseUnits(sourceChainConfig.gasPrice, "gwei"),
+            nonce: 50,
+        }
+    )
     console.log(anyCallTx)
+    await anyCallTx.wait()
 }
+
+// allowContractToUseNftTx();
 
 bridgeTx()
 .then(() => {

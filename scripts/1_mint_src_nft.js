@@ -24,7 +24,7 @@ const mintSrcNft = async () => {
         {
             gasLimit: 15000000,
             gasPrice: ethers.utils.parseUnits(sourceChainConfig.gasPrice, "gwei"),
-            nonce: 31,
+            nonce: 48,
         }
     )
     console.log(mintSourceNft)

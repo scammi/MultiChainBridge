@@ -193,7 +193,7 @@ contract ERC721Gateway_LILO is ERC721Gateway {
     constructor (address anyCallProxy, uint256 flag, address token) ERC721Gateway(anyCallProxy, flag, token) {}
 
     function _swapout(uint256 tokenId) internal override virtual returns (bool, bytes memory) {
-        try IERC721(token).safeTransferFrom(msg.sender, address(this), tokenId) {
+        try IERC721(token).transferFrom(msg.sender, address(this), tokenId) {
             return (true, "");
         } catch {
             return (false, "");
@@ -201,7 +201,7 @@ contract ERC721Gateway_LILO is ERC721Gateway {
     }
 
     function _swapin(uint256 tokenId, address receiver, bytes memory extraMsg) internal override returns (bool) {
-        try IERC721(token).safeTransferFrom(address(this), msg.sender, tokenId) {
+        try IERC721(token).transferFrom(address(this), msg.sender, tokenId) {
             return true;
         } catch {
             return false;

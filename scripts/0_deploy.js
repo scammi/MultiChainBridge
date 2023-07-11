@@ -2,6 +2,7 @@ const hre = require("hardhat")
 const { sourceChainConfig, destinationChainConfig } = require("../config.js")
 const dotenv = require("dotenv")
 const fs = require("fs")
+const deployed = require("../deployed.json")
 
 const ethers = hre.ethers
 
@@ -11,10 +12,10 @@ let sourceSigner, destinationSigner
 let sourceNFT, destinationNFT, GatewayLILO, GatewayMintBurn
 let sourceChainNft, destinationChainNft, gatewayLilo, gatewayMintBurn
 
-const sourceNFTAddress = '0xC3427BcC4c6Cd9b712b0D0C3b4CE613C2bF8dca7';
-const destinationNFTAddress = '0xc766F1c95CC3ed8c876c01d65630D5d0a8aB0D06';
-const gatewayMintBurnAddress = '0xDF048068DE52C63D5797BAF17c3a451d84dD2F7D';
-const gatewayLiloAddress = '0xeEDE34d03b0DCa0AAa6e6762501c14B6C92F07c5';
+const sourceNFTAddress = deployed.sourceChain.nft;
+const destinationNFTAddress = deployed.destinationChain.nft;
+const gatewayMintBurnAddress = deployed.destinationChain.gateway;
+const gatewayLiloAddress = deployed.sourceChain.gateway;
 
 const deploySrcNft = async () => {
     if (sourceNFTAddress) {
@@ -48,9 +49,13 @@ const deploySrcGateway = async () => {
         gatewayLilo = GatewayLILO.attach(gatewayLiloAddress);
     } else {
         gatewayLilo = await GatewayLILO.deploy(
-            sourceChainConfig.anyCallProxy, 2, sourceChainNft.address,
-            { gasLimit: 15000000, gasPrice: ethers.utils.parseUnits(sourceChainConfig.gasPrice, "gwei")
-        })
+            sourceChainConfig.anyCallProxy, 2, sourceNFTAddress,
+            {
+                gasLimit: 15000000,
+                gasPrice: ethers.utils.parseUnits(sourceChainConfig.gasPrice, "gwei"),
+                nonce: 41 
+            }
+        )
         await gatewayLilo.deployed()
     }
     console.log(`Source gateway deployed on ${ sourceChainConfig.name } at: ${ gatewayLilo.address }`)
@@ -75,6 +80,7 @@ const setSrcPeer = async () => {
         {
             gasLimit: 15000000,
             gasPrice: ethers.utils.parseUnits(sourceChainConfig.gasPrice, "gwei"),
+            nonce: 45
         }
     )
     await setSrcPeersTx.wait()
@@ -116,16 +122,16 @@ const main = async () => {
         console.log(`error in get signers`)
     }
 
-    sourceNFT = (await ethers.getContractFactory("NFT", sourceSigner))
+    sourceNFT = await ethers.getContractFactory("NFT", sourceSigner)
     destinationNFT = await ethers.getContractFactory("NFT", destinationSigner)
     GatewayLILO = await ethers.getContractFactory("ERC721Gateway_LILO", sourceSigner)
     GatewayMintBurn = await ethers.getContractFactory("ERC721Gateway_MintBurn", destinationSigner)
 
-    // try {
-    //     await deploySrcNft()
-    // } catch(err) {
-    //     console.log(`error in deploy src nft: ${ err.message }`)
-    // }
+    try {
+        await deploySrcNft()
+    } catch(err) {
+        console.log(`error in deploy src nft: ${ err.message }`)
+    }
 
     try {
         await deployDestNft()
@@ -133,29 +139,29 @@ const main = async () => {
         console.log(`error in deploy dest nft: ${ err.message }`)
     }
 
-    // try {
-    //     await deploySrcGateway()
-    // } catch(err) {
-    //     console.log(`error in deploy src gateway: ${ err.message }`)
-    // }
+    try {
+        await deploySrcGateway()
+    } catch(err) {
+        console.log(`error in deploy src gateway: ${ err.message }`)
+    }
 
-    // try {
-    //     await deployDestGateway()
-    // } catch(err) {
-    //     console.log(`error in deploy dest gateway: ${ err.message }`)
-    // }
+    try {
+        await deployDestGateway()
+    } catch(err) {
+        console.log(`error in deploy dest gateway: ${ err.message }`)
+    }
 
-    // try {
-    //     await setSrcPeer()
-    // } catch(err) {
-    //     console.log(`error in set src peer: ${ err.message }`)
-    // }
+    try {
+        await setSrcPeer()
+    } catch(err) {
+        console.log(`error in set src peer: ${ err.message }`)
+    }
 
-    // try {
-    //     await setDestPeer()
-    // } catch(err) {
-    //     console.log(`error in set dest peer: ${ err.message }`)
-    // }
+    try {
+        await setDestPeer()
+    } catch(err) {
+        console.log(`error in set dest peer: ${ err.message }`)
+    }
 
     try {
         await setMinter()
