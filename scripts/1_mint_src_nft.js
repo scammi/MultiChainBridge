@@ -24,12 +24,10 @@ const mintSrcNft = async () => {
         {
             gasLimit: 15000000,
             gasPrice: ethers.utils.parseUnits(sourceChainConfig.gasPrice, "gwei"),
-            nonce: 48,
         }
     )
     console.log(mintSourceNft)
-    const receipt = await mintSourceNft.wait()
-    console.log(receipt)
+    await mintSourceNft.wait()
 }
 
 mintSrcNft()

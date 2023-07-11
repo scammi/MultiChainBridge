@@ -14,10 +14,7 @@ let sourceProvider, sourceSigner, sourceAddress
 const getSigners = async () => {
     sourceProvider = new ethers.providers.JsonRpcProvider(sourceChainConfig.rpcUrl)
     const sourceWallet = ethers.Wallet.fromMnemonic(process.env.TESTNET_MNEMONIC ?? '');
-    // const destinationProvider = new ethers.providers.JsonRpcProvider(destinationChainConfig.rpcUrl)
-    // const destinationWallet = new ethers.Wallet(process.env.PK)
     sourceSigner = sourceWallet.connect(sourceProvider)
-    // destinationSigner = destinationWallet.connect(destinationProvider)
     sourceAddress = await sourceSigner.getAddress()
 }
 
@@ -27,40 +24,35 @@ const allowContractToUseNftTx = async () => {
 
     const approveTx = await sourceNFT.approve(
         deployed.sourceChain.gateway,
-        1, 
+        0, 
         {
             gasLimit: 15000000,
             gasPrice: ethers.utils.parseUnits(sourceChainConfig.gasPrice, "gwei"),
-            nonce: 49,
         }
     )
-
     console.log(approveTx)
-
     await approveTx.wait()
-    
 }
 
 const bridgeTx = async () => {
     await getSigners()
-    const GatewayLILO = await ethers.getContractFactory("ERC721Gateway_LILO", sourceSigner)
+    const GatewayLILO = await ethers.getContractFactory("ERC721GatewaySource", sourceSigner)
     const gatewayLilo = GatewayLILO.attach(deployed.sourceChain.gateway)
-    const anyCallTx = await gatewayLilo.Swapout_no_fallback(
-        ethers.BigNumber.from("1"),
+    const anyCallTx = await gatewayLilo.Swapout(
+        ethers.BigNumber.from("0"),
         sourceAddress,
         ethers.BigNumber.from("43114"),
         {
-            value: ethers.BigNumber.from("2256000000000000000"),
+            // value: ethers.BigNumber.from("2256000000000000000"),
             gasLimit: 15000000,
             gasPrice: ethers.utils.parseUnits(sourceChainConfig.gasPrice, "gwei"),
-            nonce: 50,
         }
     )
     console.log(anyCallTx)
     await anyCallTx.wait()
 }
 
-// allowContractToUseNftTx();
+await allowContractToUseNftTx();
 
 bridgeTx()
 .then(() => {
