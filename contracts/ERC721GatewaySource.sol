@@ -102,14 +102,14 @@ abstract contract ERC721Gateway is Administrable {
 contract ERC721GatewaySource is ERC721Gateway {
     constructor (address token) ERC721Gateway(token) {}
 
-    event LogSwapOut(uint256 tokenId, address sender, address receiver, uint256 toChainID, uint256 swapoutSeq, address destinationGateway);
+    event SwapOut(uint256 tokenId, address sender, address receiver, uint256 toChainID, uint256 swapoutSeq, address destinationGateway);
 
     function Swapout(uint256 tokenId, address receiver, uint256 destChainID) external payable returns (uint256) {
         (bool ok, ) = _swapout(tokenId);
         require(ok);
         swapoutSeq++;
 
-        emit LogSwapOut(tokenId, msg.sender, receiver, destChainID, swapoutSeq, peer[destChainID]);
+        emit SwapOut(tokenId, msg.sender, receiver, destChainID, swapoutSeq, peer[destChainID]);
         return swapoutSeq;
     }
 

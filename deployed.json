@@ -2,11 +2,11 @@
     "sourceChain": {
         "chainId": 137,
         "nft": "0xC3427BcC4c6Cd9b712b0D0C3b4CE613C2bF8dca7",
-        "gateway": "0x91929Fb96327702295316ed76c9372befdc0B930"
+        "gateway": ""
     },
     "destinationChain": {
         "chainId": 43114,
-        "nft": "0xc766F1c95CC3ed8c876c01d65630D5d0a8aB0D06",
-        "gateway": "0xDF048068DE52C63D5797BAF17c3a451d84dD2F7D"
+        "nft": "",
+        "gateway": ""
     }
 }

@@ -80,7 +80,7 @@ contract Administrable {
     }
 }
 
-abstract contract ERC721Gateway is Administrable{
+abstract contract ERC721Gateway is Administrable {
     address public token;
     uint256 public swapoutSeq;
     mapping(uint256 => address) internal peer;

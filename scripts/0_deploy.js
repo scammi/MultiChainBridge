@@ -17,18 +17,23 @@ const destinationNFTAddress = deployed.destinationChain.nft;
 const gatewayMintBurnAddress = deployed.destinationChain.gateway;
 const gatewayLiloAddress = deployed.sourceChain.gateway;
 
+const sourceChainGasPriceParsed = ethers.utils.parseUnits(sourceChainConfig.gasPrice, "gwei"); 
+const destinationChainGasPriceParsed = ethers.utils.parseUnits(destinationChainConfig.gasPrice, "gwei"); 
+
 const deploySrcNft = async () => {
     if (sourceNFTAddress) {
         sourceChainNft = sourceNFT.attach(sourceNFTAddress)
     } else {
         sourceChainNft = await sourceNFT.deploy(
             "Source Chain NFT", "SRC_NFT",
-            { gasPrice: ethers.utils.parseUnits(sourceChainConfig.gasPrice, "gwei")
-        })
+            {
+                gasPrice: sourceChainGasPriceParsed
+            }
+        )
         await sourceChainNft.deployed()
     }
 
-    console.log(`Source NFT deployed on ${ sourceChainConfig.name } at: ${ sourceChainNft.address }`)
+    console.log(`Source NFT deployed on ${ sourceChainConfig.name } at: ${ sourceChainNft?.address }`)
 }
 
 const deployDestNft = async () => {
@@ -41,7 +46,7 @@ const deployDestNft = async () => {
         });
         await destinationChainNft.deployed()
     }
-    console.log(`Destination NFT deployed on ${ destinationChainConfig.name } at: ${ destinationChainNft.address }`)
+    console.log(`Destination NFT deployed on ${ destinationChainConfig.name } at: ${ destinationChainNft?.address }`)
 }
 
 const deploySrcGateway = async () => {
@@ -49,16 +54,15 @@ const deploySrcGateway = async () => {
         gatewayLilo = GatewayLILO.attach(gatewayLiloAddress);
     } else {
         gatewayLilo = await GatewayLILO.deploy(
-            sourceChainConfig.anyCallProxy, 2, sourceNFTAddress,
+            sourceNFTAddress,
             {
                 gasLimit: 15000000,
                 gasPrice: ethers.utils.parseUnits(sourceChainConfig.gasPrice, "gwei"),
-                nonce: 41 
             }
         )
         await gatewayLilo.deployed()
     }
-    console.log(`Source gateway deployed on ${ sourceChainConfig.name } at: ${ gatewayLilo.address }`)
+    console.log(`Source gateway deployed on ${ sourceChainConfig.name } at: ${ gatewayLilo?.address }`)
 }
 
 const deployDestGateway = async () => {
@@ -66,9 +70,12 @@ const deployDestGateway = async () => {
         gatewayMintBurn = await GatewayMintBurn.attach(gatewayMintBurnAddress);
     } else {
         gatewayMintBurn = await GatewayMintBurn.deploy(
-            destinationChainConfig.anyCallProxy, 2, destinationChainNft.address,
-            { gasLimit: 15000000, gasPrice: ethers.utils.parseUnits(destinationChainConfig.gasPrice, "gwei")
-        })
+            destinationNFTAddress,
+            {
+                gasLimit: 15000000,
+                gasPrice: destinationChainGasPriceParsed
+            }
+        )
         await gatewayMintBurn.deployed()
     }
     console.log(`Destination gateway deployed on ${ destinationChainConfig.name } at: ${ gatewayMintBurnAddress }`)
@@ -90,18 +97,23 @@ const setSrcPeer = async () => {
 const setDestPeer = async () => {
     const setDestPeersTx = await gatewayMintBurn.setPeers(
         [ sourceChainConfig.chainId ], [ gatewayLiloAddress ],
-        { gasLimit: 15000000, gasPrice: ethers.utils.parseUnits(destinationChainConfig.gasPrice, "gwei")
-    })
-    console.log(setDestPeersTx);
+        {
+            gasLimit: 15000000,
+            gasPrice: destinationChainGasPriceParsed
+        }
+    )
     await setDestPeersTx.wait()
-    console.log(`Set destination chain peer to ${ gatewayLilo.address }`)
+    console.log(`Set destination chain peer to ${ gatewayLilo?.address }`)
 }
 
 const setMinter = async () => {
     const setMinterTx = await destinationChainNft.transferOwnership(
         gatewayMintBurnAddress,
-        { gasLimit: 15000000, gasPrice: ethers.utils.parseUnits(destinationChainConfig.gasPrice, "gwei")
-    })
+        {
+            gasLimit: 15000000,
+            gasPrice: destinationChainGasPriceParsed
+        }
+    )
     await setMinterTx.wait()
     console.log(`Set minter to ${ gatewayMintBurnAddress } on destination chain ${ destinationChainConfig.name }`)
 }
@@ -172,7 +184,18 @@ const main = async () => {
 
 main()
 .then(() => {
-    fs.writeFileSync("./deployed.json", JSON.stringify({ sourceChain: { chainId: sourceChainConfig.chainId, nft: sourceChainNft.address, gateway: gatewayLilo.address }, destinationChain: { chainId: destinationChainConfig.chainId, nft: destinationChainNft.address, gateway: gatewayMintBurn.address }}, null, 4))
+    fs.writeFileSync("./deployed.json", JSON.stringify({
+        sourceChain: {
+            chainId: sourceChainConfig.chainId,
+            nft: sourceChainNft.address ?? sourceNFTAddress,
+            gateway: gatewayLilo.address ?? gatewayLiloAddress
+        },
+        destinationChain: {
+            chainId: destinationChainConfig.chainId,
+            nft: destinationChainNft.address ?? destinationNFTAddress,
+            gateway: gatewayMintBurn.address ?? gatewayMintBurnAddress,
+        }
+    }, null, 4))
     console.log(`Success.`)
     process.exitCode = 0
 })
