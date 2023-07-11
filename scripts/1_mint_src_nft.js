@@ -4,14 +4,30 @@ const { getContracts, getSigners } = require("./utils.js")
 
 const ethers = hre.ethers
 
+try {
+  (async () => {
+    const mintedId = await mintSrcNft()
+    const createdAccount = await createAccount(mintedId)
+
+    // todo found account
+  
+    console.log(`Success.`)
+    process.exitCode = 0
+  })()
+
+} catch(err) {
+  console.error(err.message)
+  process.exitCode = 1
+}
+
 const mintSrcNft = async () => {
   const { sourceNFT } = await getContracts()
   const { sourceSigner } = getSigners()
 
   const destinationMintAddress =  await sourceSigner.getAddress();
 
-  const mintSourceNftSimulation = await sourceNFT.callStatic.mint(destinationMintAddress, "abc")
-  console.log("Minted token ID >", mintSourceNftSimulation)
+  const mintSourceNftId = await sourceNFT.callStatic.mint(destinationMintAddress, "abc")
+  console.log("Minted token ID >", mintSourceNftId)
 
   const mintSourceNft = await sourceNFT.mint(
     destinationMintAddress, "abc",
@@ -20,16 +36,40 @@ const mintSrcNft = async () => {
       gasPrice: ethers.utils.parseUnits(sourceChainConfig.gasPrice, "gwei"),
     }
   )
+
   const mintReceipt = await mintSourceNft.wait()
   console.log('Transaction mint at hash >', mintReceipt.transactionHash)
+
+  return mintSourceNftId
 }
 
-mintSrcNft()
-  .then(() => {
-    console.log(`Success.`)
-    process.exitCode = 0
-  })
-  .catch((err) => {
-    console.error(err.message)
-    process.exitCode = 1
-  })
+const createAccount = async (tokenId) => {
+  const { registrySource, sourceNFT } = await getContracts();
+  const sourceTokenAddress = sourceNFT.address;
+
+  const createAccountTrx = await registrySource.createAccount(
+    sourceChainConfig.accountImplementationAddress,
+    sourceChainConfig.chainId,
+    sourceTokenAddress,
+    tokenId,
+    0,
+    '0x',
+    {
+      gasLimit: 15000000,
+      gasPrice: ethers.utils.parseUnits(sourceChainConfig.gasPrice, "gwei"),
+    }
+  )
+  const createAccountReceipt = await createAccountTrx.wait()
+  console.log("Account created address at hash, ", createAccountReceipt.transactionHash)
+
+  const accountCreated = await registrySource.callStatic.account(
+    sourceChainConfig.accountImplementationAddress,
+    sourceChainConfig.chainId,
+    sourceTokenAddress,
+    tokenId,
+    0,
+  )
+
+  console.log('New account', accountCreated)
+  return accountCreated
+}

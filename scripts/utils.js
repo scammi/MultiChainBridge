@@ -25,11 +25,14 @@ const getContracts = async () => {
   const NFTSourceAddress = deployed.sourceChain.nft;
   const NFTDestinationAddress = deployed.destinationChain.nft;
 
+  const registrySourceAddress = '0x02101dfB77FDE026414827Fdc604ddAF224F0921';
+
   return {
     sourceNFT: (await ethers.getContractFactory("NFT", sourceSigner)).attach(NFTSourceAddress),
-    destinationNFT:  (await ethers.getContractFactory("DestinationNFT", destinationSigner)).attach(NFTDestinationAddress),
-    gatewaySource:  (await ethers.getContractFactory("ERC721GatewaySource", sourceSigner)).attach(gatewaySourceAddress),
-    gatewayDestination:  (await ethers.getContractFactory("ERC721GatewayDestination", destinationSigner)).attach(gatewayDestinationAddress)
+    destinationNFT: (await ethers.getContractFactory("DestinationNFT", destinationSigner)).attach(NFTDestinationAddress),
+    gatewaySource: (await ethers.getContractFactory("ERC721GatewaySource", sourceSigner)).attach(gatewaySourceAddress),
+    gatewayDestination: (await ethers.getContractFactory("ERC721GatewayDestination", destinationSigner)).attach(gatewayDestinationAddress),
+    registrySource: (await ethers.getContractAt("IRegistry", registrySourceAddress, sourceSigner))
   }
 }
 
