@@ -4,21 +4,6 @@ const { getContracts, getSigners } = require("./utils.js")
 
 const ethers = hre.ethers
 
-try {
-  (async () => {
-    const mintedId = await mintSrcNft()
-    const createdAccount = await createAccount(mintedId)
-
-    // todo found account
-  
-    console.log(`Success.`)
-    process.exitCode = 0
-  })()
-
-} catch(err) {
-  console.error(err.message)
-  process.exitCode = 1
-}
 
 const mintSrcNft = async () => {
   const { sourceNFT } = await getContracts()
@@ -27,7 +12,7 @@ const mintSrcNft = async () => {
   const destinationMintAddress =  await sourceSigner.getAddress();
 
   const mintSourceNftId = await sourceNFT.callStatic.mint(destinationMintAddress, "abc")
-  console.log("Minted token ID >", mintSourceNftId)
+  console.log("- Minted token ID > ", mintSourceNftId)
 
   const mintSourceNft = await sourceNFT.mint(
     destinationMintAddress, "abc",
@@ -38,7 +23,7 @@ const mintSrcNft = async () => {
   )
 
   const mintReceipt = await mintSourceNft.wait()
-  console.log('Transaction mint at hash >', mintReceipt.transactionHash)
+  console.log('- Transaction mint at hash >', mintReceipt.transactionHash)
 
   return mintSourceNftId
 }
@@ -60,7 +45,7 @@ const createAccount = async (tokenId) => {
     }
   )
   const createAccountReceipt = await createAccountTrx.wait()
-  console.log("Account created address at hash, ", createAccountReceipt.transactionHash)
+  console.log("- Account created at hash > ", createAccountReceipt.transactionHash)
 
   const accountCreated = await registrySource.callStatic.account(
     sourceChainConfig.accountImplementationAddress,
@@ -70,6 +55,22 @@ const createAccount = async (tokenId) => {
     0,
   )
 
-  console.log('New account', accountCreated)
+  console.log('- New account > ', accountCreated)
   return accountCreated
+}
+
+try {
+  (async () => {
+    const mintedId = await mintSrcNft()
+    const createdAccount = await createAccount(mintedId)
+
+    // todo found account
+  
+    console.log(`Success.`)
+    process.exitCode = 0
+  })()
+
+} catch(err) {
+  console.error(err.message)
+  process.exitCode = 1
 }

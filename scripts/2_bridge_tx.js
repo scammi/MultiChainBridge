@@ -5,24 +5,26 @@ const deployed = JSON.parse(fs.readFileSync("./deployed.json"))
 const { getContracts } = require("./utils")
 const { sourceChainConfig } = require("../config.js")
 
-const tokenId = 15;
+const tokenId = 17; // The NFT token to be bridge.
 const destinationMintAddress = '0x277BFc4a8dc79a9F194AD4a83468484046FAFD3A';
 
-try {
-  (async () => {
-    await allowContractToUseNftTx()
-    await bridgeTx()
+const grantNFTApprovalToSourceGateway = async (tokenId) => {
+  const { sourceNFT } = await getContracts()
 
-    console.log(`Success.`)
-    process.exitCode = 0
-  })()
+  const approveTx = await sourceNFT.approve(
+    deployed.sourceChain.gateway,
+    tokenId,
+    {
+      gasLimit: 15000000,
+      gasPrice: ethers.utils.parseUnits(sourceChainConfig.gasPrice, "gwei"),
+    }
+  )
 
-} catch (err) {
-  console.error(err.message)
-  process.exitCode = 1
+  console.log(`Gateway approved usage of NFT ${tokenId}`)
+  await approveTx.wait()
 }
 
-const bridgeTx = async () => {
+const enterTheGateway = async (tokenId) => {
   const { gatewaySource } = await getContracts()
 
   const anyCallTx = await gatewaySource.Swapout(
@@ -40,18 +42,16 @@ const bridgeTx = async () => {
   console.log('Locked token at hash > ', swapoutReceipt.transactionHash)
 }
 
-const allowContractToUseNftTx = async () => {
-  const { sourceNFT } = await getContracts()
+try {
+  (async () => {
+    await grantNFTApprovalToSourceGateway(tokenId)
+    await enterTheGateway(tokenId)
 
-  const approveTx = await sourceNFT.approve(
-    deployed.sourceChain.gateway,
-    tokenId,
-    {
-      gasLimit: 15000000,
-      gasPrice: ethers.utils.parseUnits(sourceChainConfig.gasPrice, "gwei"),
-    }
-  )
+    console.log(`Success.`)
+    process.exitCode = 0
+  })()
 
-  console.log('Gateway approved usage of token')
-  await approveTx.wait()
+} catch (err) {
+  console.error(err.message)
+  process.exitCode = 1
 }

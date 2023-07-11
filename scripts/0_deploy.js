@@ -49,7 +49,7 @@ const deploySrcGateway = async () => {
     gatewaySource = GatewaySource.attach(gatewaySourceAddress);
   } else {
     gatewaySource = await GatewaySource.deploy(
-      sourceNFTAddress,
+      sourceChainNft.address,
       {
         gasLimit: 15000000,
         gasPrice: ethers.utils.parseUnits(sourceChainConfig.gasPrice, "gwei"),
@@ -65,7 +65,7 @@ const deployDestGateway = async () => {
     gatewayDestination = await GatewayDestination.attach(gatewayDestinationAddress);
   } else {
     gatewayDestination = await GatewayDestination.deploy(
-      destinationNFTAddress,
+      gatewayDestination.address,
       {
         gasLimit: 15000000,
         gasPrice: destinationChainGasPriceParsed
