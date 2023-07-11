@@ -1,65 +1,51 @@
-const hre = require("hardhat")
-const { sourceChainConfig, destinationChainConfig } = require("../config.js")
-const dotenv = require("dotenv")
 const fs = require("fs")
-
+const hre = require("hardhat")
 const ethers = hre.ethers
-
-dotenv.config()
-
 const deployed = JSON.parse(fs.readFileSync("./deployed.json"))
+const { getContracts } = require("./utils")
+const { sourceChainConfig } = require("../config.js")
 
-let sourceProvider, sourceSigner, sourceAddress
-
-const getSigners = async () => {
-    sourceProvider = new ethers.providers.JsonRpcProvider(sourceChainConfig.rpcUrl)
-    const sourceWallet = ethers.Wallet.fromMnemonic(process.env.TESTNET_MNEMONIC ?? '');
-    sourceSigner = sourceWallet.connect(sourceProvider)
-    sourceAddress = await sourceSigner.getAddress()
-}
+const tokenId = 9;
+const destinationMintAddress = '0x277BFc4a8dc79a9F194AD4a83468484046FAFD3A';
 
 const allowContractToUseNftTx = async () => {
-    await getSigners()
-    const sourceNFT = (await ethers.getContractFactory("NFT", sourceSigner)).attach(deployed.sourceChain.nft)
+  const { sourceNFT } = await getContracts()
 
-    const approveTx = await sourceNFT.approve(
-        deployed.sourceChain.gateway,
-        0, 
-        {
-            gasLimit: 15000000,
-            gasPrice: ethers.utils.parseUnits(sourceChainConfig.gasPrice, "gwei"),
-        }
-    )
-    console.log(approveTx)
-    await approveTx.wait()
+  const approveTx = await sourceNFT.approve(
+    deployed.sourceChain.gateway,
+    tokenId,
+    {
+      gasLimit: 15000000,
+      gasPrice: ethers.utils.parseUnits(sourceChainConfig.gasPrice, "gwei"),
+    }
+  )
+  console.log('Approved token')
+  await approveTx.wait()
 }
 
 const bridgeTx = async () => {
-    await getSigners()
-    const GatewayLILO = await ethers.getContractFactory("ERC721GatewaySource", sourceSigner)
-    const gatewayLilo = GatewayLILO.attach(deployed.sourceChain.gateway)
-    const anyCallTx = await gatewayLilo.Swapout(
-        ethers.BigNumber.from("0"),
-        sourceAddress,
-        ethers.BigNumber.from("43114"),
-        {
-            // value: ethers.BigNumber.from("2256000000000000000"),
-            gasLimit: 15000000,
-            gasPrice: ethers.utils.parseUnits(sourceChainConfig.gasPrice, "gwei"),
-        }
-    )
-    console.log(anyCallTx)
-    await anyCallTx.wait()
+  await allowContractToUseNftTx()
+  const { gatewaySource } = await getContracts()
+
+  const anyCallTx = await gatewaySource.Swapout(
+    ethers.BigNumber.from(String(tokenId)),
+    destinationMintAddress,
+    ethers.BigNumber.from("43114"),
+    {
+      gasLimit: 15000000,
+      gasPrice: ethers.utils.parseUnits(sourceChainConfig.gasPrice, "gwei"),
+    }
+  )
+  console.log('Locked token')
+  await anyCallTx.wait()
 }
 
-await allowContractToUseNftTx();
-
 bridgeTx()
-.then(() => {
+  .then(() => {
     console.log(`Success.`)
     process.exitCode = 0
-})
-.catch((err) => {
+  })
+  .catch((err) => {
     console.error(err.message)
     process.exitCode = 1
-})
+  })

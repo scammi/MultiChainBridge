@@ -6,7 +6,7 @@
     },
     "destinationChain": {
         "chainId": 43114,
-        "nft": "0x80aB4bA4F5E3B9Fd91bA24e322176D45e4f3E18E",
-        "gateway": "0x1308213be2d50bf52b6b5e98ecc51c31d5f1c704"
+        "nft": "0x151470F6fa64A1aC81ADbef3504fd489Cf712f4D",
+        "gateway": "0x9477B0A9Cb8E715751E991fbc1Cd136b0Cf7fb69"
     }
 }

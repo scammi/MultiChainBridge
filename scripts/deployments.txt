@@ -1,4 +1,0 @@
-Source NFT deployed on MATIC at: 0xC3427BcC4c6Cd9b712b0D0C3b4CE613C2bF8dca7
-Destination NFT deployed on Avalanche (C-Chain) at: 0xc766F1c95CC3ed8c876c01d65630D5d0a8aB0D06
-Source gateway deployed on MATIC at: 0xeEDE34d03b0DCa0AAa6e6762501c14B6C92F07c5
-Destination gateway deployed on Avalanche (C-Chain) at: 0xDF048068DE52C63D5797BAF17c3a451d84dD2F7D

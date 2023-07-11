@@ -1,14 +1,9 @@
 const hre = require("hardhat")
 const { sourceChainConfig, destinationChainConfig } = require("../config.js")
-const dotenv = require("dotenv")
-const fs = require("fs")
 const deployed = require("../deployed.json")
-
+const { getSigners } = require("./utils.js")
 const ethers = hre.ethers
 
-dotenv.config()
-
-let sourceSigner, destinationSigner
 let SourceNFT, DestinationNFT, GatewaySource, GatewayDestination
 let sourceChainNft, destinationChainNft, gatewaySource, gatewayDestination
 
@@ -41,7 +36,6 @@ const deployDestNft = async () => {
     destinationChainNft = DestinationNFT.attach(destinationNFTAddress)
   } else {
     destinationChainNft = await DestinationNFT.deploy(
-      "Destination Chain NFT", "DEST_NFT",
       {
         gasLimit: 15000000, gasPrice: ethers.utils.parseUnits(destinationChainConfig.gasPrice, "gwei")
       });
@@ -82,99 +76,49 @@ const deployDestGateway = async () => {
   console.log(`Destination gateway deployed on ${destinationChainConfig.name} at: ${gatewayDestination.address}`)
 }
 
-const setSrcPeer = async () => {
-  const setSrcPeersTx = await GatewaySource.attach(gatewaySourceAddress).setPeers(
-    [destinationChainConfig.chainId], [gatewayDestinationAddress],
-    {
-      gasLimit: 15000000,
-      gasPrice: ethers.utils.parseUnits(sourceChainConfig.gasPrice, "gwei"),
-      nonce: 53
-    }
-  )
-  await setSrcPeersTx.wait()
-  console.log(`Set source chain peer to ${gatewayDestinationAddress}`)
-}
-
-const setDestPeer = async () => {
-  const setDestPeersTx = await GatewayDestination.attach(gatewayDestinationAddress).setPeers(
-    [sourceChainConfig.chainId], [gatewaySourceAddress],
-    {
-      gasLimit: 15000000,
-      gasPrice: destinationChainGasPriceParsed
-    }
-  )
-  await setDestPeersTx.wait()
-  console.log(`Set destination chain peer to ${gatewaySource?.address}`)
-}
-
 const setMinter = async () => {
   const setMinterTx = await DestinationNFT.attach(destinationNFTAddress).transferOwnership(
-    gatewayDestinationAddress,
+    gatewaySource.address ?? gatewayDestinationAddress,
     {
       gasLimit: 15000000,
       gasPrice: destinationChainGasPriceParsed
     }
   )
   await setMinterTx.wait()
-  console.log(`Set minter to ${gatewayDestinationAddress} on destination chain ${destinationChainConfig.name}`)
-}
-
-const getSigners = () => {
-  const sourceProvider = new ethers.providers.JsonRpcProvider(sourceChainConfig.rpcUrl)
-  const sourceWallet = ethers.Wallet.fromMnemonic(process.env.TESTNET_MNEMONIC ?? '');
-  const destinationProvider = new ethers.providers.JsonRpcProvider(destinationChainConfig.rpcUrl)
-  const destinationWallet = ethers.Wallet.fromMnemonic(process.env.TESTNET_MNEMONIC ?? '');
-  sourceSigner = sourceWallet.connect(sourceProvider)
-  destinationSigner = destinationWallet.connect(destinationProvider)
+  console.log(`Set minter to ${gatewaySource.address ?? gatewayDestinationAddress} on destination chain ${destinationChainConfig.name}`)
 }
 
 const main = async () => {
-  try {
-    getSigners()
-  } catch (err) {
-    console.log(`error in get signers`)
-  }
+  const { sourceSigner, destinationSigner } = getSigners()
 
   SourceNFT = await ethers.getContractFactory("NFT", sourceSigner)
-  DestinationNFT = await ethers.getContractFactory("NFT", destinationSigner)
+  DestinationNFT = await ethers.getContractFactory("DestinationNFT", destinationSigner)
   GatewaySource = await ethers.getContractFactory("ERC721GatewaySource", sourceSigner)
   GatewayDestination = await ethers.getContractFactory("ERC721GatewayDestination", destinationSigner)
 
-  // try {
-  //   await deploySrcNft()
-  // } catch (err) {
-  //   console.log(`error in deploy src nft: ${err.message}`)
-  // }
+  try {
+    await deploySrcNft()
+  } catch (err) {
+    console.log(`error in deploy src nft: ${err.message}`)
+  }
 
-  // try {
-  //   await deployDestNft()
-  // } catch (err) {
-  //   console.log(`error in deploy dest nft: ${err.message}`)
-  // }
+  try {
+    await deployDestNft()
+  } catch (err) {
+    console.log(`error in deploy dest nft: ${err.message}`)
+  }
 
-  // try {
-  //   await deploySrcGateway()
-  // } catch (err) {
-  //   console.log(`error in deploy src gateway: ${err.message}`)
-  // }
+  try {
+    await deploySrcGateway()
+  } catch (err) {
+    console.log(`error in deploy src gateway: ${err.message}`)
+  }
 
-  // try {
-  //   await deployDestGateway()
-  // } catch (err) {
-  //   console.log(`error in deploy dest gateway: ${err.message}`)
-  // }
-
-  // try {
-  //   await setSrcPeer()
-  // } catch (err) {
-  //   console.log(`error in set src peer: ${err.message}`)
-  // }
-
-  // try {
-  //   await setDestPeer()
-  // } catch (err) {
-  //   console.log(`error in set dest peer: ${err.message}`)
-  // }
+  try {
+    await deployDestGateway()
+  } catch (err) {
+    console.log(`error in deploy dest gateway: ${err.message}`)
+  }
 
   try {
     await setMinter()

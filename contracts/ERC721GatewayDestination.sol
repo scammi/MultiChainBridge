@@ -4,7 +4,7 @@ pragma solidity ^0.8.1;
 
 interface IMintBurn721 {
     function ownerOf(uint256 tokenId) external view returns (address owner);
-    function mint(address account, uint256 tokenId) external;
+    function mint(address account, uint256 tokenId, string memory uri) external;
     function burn(uint256 tokenId) external;
 }
 
@@ -80,36 +80,15 @@ contract Administrable {
     }
 }
 
-abstract contract ERC721Gateway is Administrable {
+contract ERC721GatewayDestination is Administrable {
     address public token;
-    uint256 public swapoutSeq;
-    mapping(uint256 => address) internal peer;
-
     constructor (address token_) {
         setAdmin(msg.sender);
         token = token_;
     }
 
-    event SetPeers(uint256[] chainIDs, address[] peers);
-
-    function setPeers(uint256[] memory chainIDs, address[] memory  peers) public onlyAdmin {
-        for (uint i = 0; i < chainIDs.length; i++) {
-            peer[chainIDs[i]] = peers[i];
-            emit SetPeers(chainIDs, peers);
-        }
-    }
-
-    function getPeer(uint256 foreignChainID) external view returns (address) {
-        return peer[foreignChainID];
-    }
-}
-
-
-contract ERC721GatewayDestination is ERC721Gateway {
-    constructor(address token_) ERC721Gateway(token_){}
-
-    function Swapin(uint256 tokenId, address receiver ) onlyAdmin public returns (bool) {
-        try IMintBurn721(token).mint(receiver, tokenId) {
+    function Swapin(uint256 tokenId, address receiver, string memory uri ) onlyAdmin public returns (bool) {
+        try IMintBurn721(token).mint(receiver, tokenId, uri) {
             return true;
         } catch {
             return false;
