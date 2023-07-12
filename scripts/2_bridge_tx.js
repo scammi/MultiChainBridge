@@ -16,7 +16,7 @@ const grantNFTApprovalToSourceGateway = async (tokenId) => {
     tokenId,
     {
       gasLimit: 15000000,
-      gasPrice: ethers.utils.parseUnits(sourceChainConfig.gasPrice, "gwei"),
+      gasPrice: sourceChainConfig.gasPriceWUIParsed,
     }
   )
 
@@ -33,7 +33,7 @@ const enterTheGateway = async (tokenId) => {
     ethers.BigNumber.from("43114"),
     {
       gasLimit: 15000000,
-      gasPrice: ethers.utils.parseUnits(sourceChainConfig.gasPrice, "gwei"),
+      gasPrice: sourceChainConfig.gasPriceWUIParsed,
     }
   )
   console.log('Entering the void .... ')

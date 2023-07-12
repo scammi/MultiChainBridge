@@ -5,7 +5,7 @@ const { getContracts, getSigners } = require("./utils.js")
 const ethers = hre.ethers
 
 
-const mintSrcNft = async () => {
+const mintSourceNFT = async () => {
   const { sourceNFT } = await getContracts()
   const { sourceSigner } = getSigners()
 
@@ -18,7 +18,7 @@ const mintSrcNft = async () => {
     destinationMintAddress, "abc",
     {
       gasLimit: 15000000,
-      gasPrice: ethers.utils.parseUnits(sourceChainConfig.gasPrice, "gwei"),
+      gasPrice: sourceChainConfig.gasPriceWUIParsed,
     }
   )
 
@@ -61,9 +61,8 @@ const createAccount = async (tokenId) => {
 
 try {
   (async () => {
-    const mintedId = await mintSrcNft()
+    const mintedId = await mintSourceNFT()
     const createdAccount = await createAccount(mintedId)
-
     // todo found account
   
     console.log(`Success.`)
