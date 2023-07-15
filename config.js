@@ -1,3 +1,4 @@
+
 module.exports = {
   sourceChainConfig: {
     name: "MATIC",
@@ -10,6 +11,6 @@ module.exports = {
     name: "Avalanche (C-Chain)",
     chainId: 43114,
     rpcUrl: "https://api.avax.network/ext/bc/C/rpc",
-    gasPrice: '30'
+    gasPrice: '30',
   }
 }

@@ -5,7 +5,7 @@ const deployed = JSON.parse(fs.readFileSync("./deployed.json"))
 const { getContracts } = require("./utils")
 const { sourceChainConfig } = require("../config.js")
 
-const tokenId = 17; // The NFT token to be bridge.
+const tokenId = 19; // The NFT token to be bridge.
 const destinationMintAddress = '0x277BFc4a8dc79a9F194AD4a83468484046FAFD3A';
 
 const grantNFTApprovalToSourceGateway = async (tokenId) => {
@@ -16,7 +16,7 @@ const grantNFTApprovalToSourceGateway = async (tokenId) => {
     tokenId,
     {
       gasLimit: 15000000,
-      gasPrice: sourceChainConfig.gasPriceWUIParsed,
+      gasPrice: ethers.utils.parseUnits(sourceChainConfig.gasPrice, "gwei"),
     }
   )
 
@@ -33,7 +33,7 @@ const enterTheGateway = async (tokenId) => {
     ethers.BigNumber.from("43114"),
     {
       gasLimit: 15000000,
-      gasPrice: sourceChainConfig.gasPriceWUIParsed,
+      gasPrice: ethers.utils.parseUnits(sourceChainConfig.gasPrice, "gwei"),
     }
   )
   console.log('Entering the void .... ')

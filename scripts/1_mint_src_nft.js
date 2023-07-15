@@ -18,7 +18,7 @@ const mintSourceNFT = async () => {
     destinationMintAddress, "abc",
     {
       gasLimit: 15000000,
-      gasPrice: sourceChainConfig.gasPriceWUIParsed,
+      gasPrice: ethers.utils.parseUnits(sourceChainConfig.gasPrice, "gwei"),
     }
   )
 
