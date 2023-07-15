@@ -1,12 +1,12 @@
 {
     "sourceChain": {
-        "chainId": 4002,
-        "nft": "0xE68a23910d165074Cc3886D22d90577FcfF2cAC3",
-        "gateway": "0xeB15Be7b8332eCB37367FC411296c6b807Fd05D0"
+        "chainId": 137,
+        "nft": "0xC3427BcC4c6Cd9b712b0D0C3b4CE613C2bF8dca7",
+        "gateway": "0xB66bde86AAd0d7F59Eb2fe00D416890391D7Aa30"
     },
     "destinationChain": {
-        "chainId": 97,
-        "nft": "0x0ce33332E87F5eEaA7dF7B5F49a994868F9AF2ce",
-        "gateway": "0xdA9F41FE41f186b754765c8CB27D48ed22Fb8610"
+        "chainId": 43114,
+        "nft": "0x151470F6fa64A1aC81ADbef3504fd489Cf712f4D",
+        "gateway": "0x9477B0A9Cb8E715751E991fbc1Cd136b0Cf7fb69"
     }
 }

@@ -1,35 +1,75 @@
 const hre = require("hardhat")
 const { sourceChainConfig } = require("../config.js")
-const fs = require("fs")
+const { getContracts, getSigners } = require("./utils.js")
 
 const ethers = hre.ethers
 
-const deployed = JSON.parse(fs.readFileSync("./deployed.json"))
 
-let sourceSigner, sourceAddress, sourceNFT
+const mintSourceNFT = async () => {
+  const { sourceNFT } = await getContracts()
+  const { sourceSigner } = getSigners()
 
-const getSigners = async () => {
-    const sourceProvider = new ethers.providers.JsonRpcProvider(sourceChainConfig.rpcUrl)
-    const sourceWallet = ethers.Wallet.fromMnemonic(process.env.TESTNET_MNEMONIC ?? '');
-    sourceSigner = sourceWallet.connect(sourceProvider)
-    sourceAddress = await sourceSigner.getAddress()
+  const destinationMintAddress =  await sourceSigner.getAddress();
+
+  const mintSourceNftId = await sourceNFT.callStatic.mint(destinationMintAddress, "abc")
+  console.log("- Minted token ID > ", mintSourceNftId)
+
+  const mintSourceNft = await sourceNFT.mint(
+    destinationMintAddress, "abc",
+    {
+      gasLimit: 15000000,
+      gasPrice: ethers.utils.parseUnits(sourceChainConfig.gasPrice, "gwei"),
+    }
+  )
+
+  const mintReceipt = await mintSourceNft.wait()
+  console.log('- Transaction mint at hash >', mintReceipt.transactionHash)
+
+  return mintSourceNftId
 }
 
-const mintSrcNft = async () => {
-    await getSigners()
-    sourceNFT = await ethers.getContractFactory("NFT", sourceSigner)
-    const sourceChainNft = sourceNFT.attach(deployed.sourceChain.nft)
-    const mintSourceNft = await sourceChainNft.mint(sourceAddress, "abc", { gasLimit: 1000000 })
-    const receipt = await mintSourceNft.wait()
-    console.log(receipt)
+const createAccount = async (tokenId) => {
+  const { registrySource, sourceNFT } = await getContracts();
+  const sourceTokenAddress = sourceNFT.address;
+
+  const createAccountTrx = await registrySource.createAccount(
+    sourceChainConfig.accountImplementationAddress,
+    sourceChainConfig.chainId,
+    sourceTokenAddress,
+    tokenId,
+    0,
+    '0x',
+    {
+      gasLimit: 15000000,
+      gasPrice: ethers.utils.parseUnits(sourceChainConfig.gasPrice, "gwei"),
+    }
+  )
+  const createAccountReceipt = await createAccountTrx.wait()
+  console.log("- Account created at hash > ", createAccountReceipt.transactionHash)
+
+  const accountCreated = await registrySource.callStatic.account(
+    sourceChainConfig.accountImplementationAddress,
+    sourceChainConfig.chainId,
+    sourceTokenAddress,
+    tokenId,
+    0,
+  )
+
+  console.log('- New account > ', accountCreated)
+  return accountCreated
 }
 
-mintSrcNft()
-.then(() => {
+try {
+  (async () => {
+    const mintedId = await mintSourceNFT()
+    const createdAccount = await createAccount(mintedId)
+    // todo found account
+  
     console.log(`Success.`)
     process.exitCode = 0
-})
-.catch((err) => {
-    console.error(err.message)
-    process.exitCode = 1
-})
+  })()
+
+} catch(err) {
+  console.error(err.message)
+  process.exitCode = 1
+}

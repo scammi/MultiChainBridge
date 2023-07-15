@@ -21,5 +21,11 @@ module.exports = {
             chainId: 43114,
             mnemonic: mnemonic
         }
-    }
+    },
+    etherscan: {
+        apiKey: {
+          polygon: process.env.ETHERSCAN_POLYGON,
+          avalanche: process.env.ETHERSCAN_AVALANCHE
+        }
+      }
 }
